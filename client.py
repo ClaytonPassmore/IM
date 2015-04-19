@@ -5,7 +5,8 @@ from message import fetchMessage, formatMessage, getMessageLengthString
 
 def listen(sock):
     while True:
-        result = sock.recv(2048)
+        length = getMessageLengthString(sock)
+        result = fetchMessage(int(length), sock)
         if(len(result) == 0):
             sock.close()
             return
@@ -29,17 +30,15 @@ def main(args):
     ident = args[1]
     password = args[2]
     text = '\\connect;' + ident + ';' + password
-    length = len(text)
-    msg = ('%05d' % length) + text
+    msg = formatMessage(text)
     s.send(msg)
 
     while True:
         text = raw_input('Enter a message:\n')
-        length = len(text)
-        if(length == 0):
+        if(text == ''):
             break
 
-        msg = ('%05d' % length) + text
+        msg = formatMessage(text)
         s.send(msg)
 
 if __name__ == '__main__':
