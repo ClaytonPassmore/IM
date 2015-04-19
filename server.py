@@ -10,9 +10,6 @@ from listener import clientListener
     Parent gets new connections and adds them to a queue
     Child 1 validates new connections from queue and adds them to socket manager
     Child 2 waits on and serves clients using select.
-        -> Need function dispatcher
-        -> Add requests to queue
-    Child 3 Executes client requests from queue
 """
 
 # Start the server process

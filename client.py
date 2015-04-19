@@ -1,6 +1,9 @@
 import socket
+import sys
 
-def main():
+def main(args):
+    if(len(args) < 3):
+        return
     s = socket.socket(
         socket.AF_INET,
         socket.SOCK_STREAM
@@ -10,9 +13,11 @@ def main():
     s.connect((socket.gethostname(), 2048))
 
     # Send identifier to server
-    ident = 'ctpassmore'
-    length = len(ident)
-    msg = ('%05d' % length) + ident
+    ident = args[1]
+    password = args[2]
+    text = '\\connect;' + ident + ';' + password
+    length = len(text)
+    msg = ('%05d' % length) + text
     s.send(msg)
 
     while True:
@@ -25,4 +30,4 @@ def main():
         s.send(msg)
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
