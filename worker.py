@@ -20,7 +20,7 @@ def sendMessage(request, s, ident, db, socketMgr):
 
     # Check if recip is a contact
     if(len(result.fetch_row()) == 0):
-        text = '\\status;0;\\message' + request
+        text = '\\status;0;\\message;' + request
         s.send(formatMessage(text))
         return
 
@@ -28,7 +28,7 @@ def sendMessage(request, s, ident, db, socketMgr):
 
     # Check if client is disconnected
     if(recipSocket == False):
-        text = '\\status;0;\\message' + request
+        text = '\\status;0;\\message;' + request
         s.send(formatMessage(text))
         return
 
@@ -75,7 +75,7 @@ def addContact(request, s, ident, db, socketMgr):
     # Verify user exists
     rows = result.fetch_row()
     if(len(rows) == 0):
-        text = '\\status;0;\\add' + request
+        text = '\\status;0;\\add;' + request
         s.send(formatMessage(text))
         return
 
@@ -106,7 +106,7 @@ def addContact(request, s, ident, db, socketMgr):
     db.query(query)
 
     # Let client know that request was placed
-    text = '\\status;1;\\add' + request
+    text = '\\status;1;\\add;' + request
     s.send(formatMessage(text))
 
 # Set user's alias
@@ -115,7 +115,7 @@ def setAlias(request, s, ident, db, socketMgr):
     query = """UPDATE USERS SET alias = '""" + re.escape(alias) + """'
         WHERE username = '""" + re.escape(ident) + """'"""
     db.query(query)
-    text = '\\status;1;\\alias' + request
+    text = '\\status;1;\\alias;' + request
     s.send(formatMessage(text))
 
 def work(socketMgr, jobQueue):

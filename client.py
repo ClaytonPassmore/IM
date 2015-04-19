@@ -1,7 +1,7 @@
 import socket
 import sys
 import thread
-from message import fetchMessage, formatMessage
+from message import fetchMessage, formatMessage, getMessageLengthString
 
 def listen(sock):
     while True:
