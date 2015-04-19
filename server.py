@@ -4,12 +4,14 @@ from Queue import Queue
 from socket_manager import socketManager
 from incoming import manageIncoming
 from listener import clientListener
+from worker import work
 
 """
     Global socketManager
     Parent gets new connections and adds them to a queue
     Child 1 validates new connections from queue and adds them to socket manager
     Child 2 waits on and serves clients using select.
+    Child 3 executes client requests
 """
 
 # Start the server process
@@ -19,12 +21,16 @@ def main():
 
     # Queue of new connections
     incomingQueue = Queue()
+    jobQueue = Queue()
 
     # Start thread for handling new connections
     thread.start_new_thread(manageIncoming, (incomingQueue, socketMgr))
 
     # Start thread for listening to client requests
-    thread.start_new_thread(clientListener, (socketMgr,))
+    thread.start_new_thread(clientListener, (socketMgr, jobQueue))
+
+    # Start thread for executing client requests
+    thread.start_new_thread(work, (socketMgr, jobQueue))
 
     # Main server socket for incoming connections
     serverSocket = socket.socket(

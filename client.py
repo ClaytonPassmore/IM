@@ -1,5 +1,15 @@
 import socket
 import sys
+import thread
+from message import fetchMessage, formatMessage
+
+def listen(sock):
+    while True:
+        result = sock.recv(2048)
+        if(len(result) == 0):
+            sock.close()
+            return
+        print result
 
 def main(args):
     if(len(args) < 3):
@@ -11,6 +21,9 @@ def main(args):
 
     # Connect to the server
     s.connect((socket.gethostname(), 2048))
+
+    # Create listening thread
+    thread.start_new_thread(listen, (s,))
 
     # Send identifier to server
     ident = args[1]

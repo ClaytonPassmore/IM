@@ -1,30 +1,20 @@
+import re
 import _mysql
 import socket
+from Queue import Queue
 from select import select
-from message import fetchMessage
+from message import fetchMessage, getMessageLengthString
 from socket_manager import socketManager
 
 def disconnect(socket, identifier, db, socketMgr):
     socketMgr.removeSocket(socket)
-    query = """UPDATE USERS SET active = FALSE WHERE username = '""" + identifier + """'"""
+    query = """UPDATE USERS SET active = FALSE 
+    WHERE username = '""" + re.escape(identifier) + """'"""
     db.query(query)
     print identifier + " has disconnected"
 
-# Retrieve 5 bytes from the socket
-def getMessageLengthString(socket):
-    Total = 5
-    soFar = 0
-    length = ''
-    while(soFar < Total):
-        length += socket.recv(Total - soFar)
-        soFar = len(length)
-        if(soFar == 0):
-            length = ''
-            break;
-    return length
-
 # Listen on client ports and execute client requests
-def clientListener(socketMgr):
+def clientListener(socketMgr, jobQueue):
     # Create the database connection
     db = _mysql.connect(host="localhost", user="root", passwd="root", db="IM")
 
@@ -41,7 +31,14 @@ def clientListener(socketMgr):
                 disconnect(s, ident, db, socketMgr)
                 continue
 
+            # Fetch the entire message
             request = fetchMessage(int(msgLength), s)
 
-            print ident + " says: " + request
+            # Put info in the job queue
+            item = {
+                'identifier': ident,
+                'socket': s,
+                'request': request
+            }
+            jobQueue.put(item)
 
