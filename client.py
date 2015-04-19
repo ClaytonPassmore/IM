@@ -6,10 +6,10 @@ from message import fetchMessage, formatMessage, getMessageLengthString
 def listen(sock):
     while True:
         length = getMessageLengthString(sock)
-        result = fetchMessage(int(length), sock)
-        if(len(result) == 0):
+        if(len(length) == 0):
             sock.close()
             return
+        result = fetchMessage(int(length), sock)
         print result
 
 def main(args):
