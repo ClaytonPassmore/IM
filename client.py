@@ -1,5 +1,6 @@
-import socket
 import sys
+import rsa
+import socket
 import thread
 from message import fetchMessage, formatMessage, getMessageLengthString
 
@@ -19,6 +20,9 @@ def main(args):
         socket.AF_INET,
         socket.SOCK_STREAM
     )
+    with open('keys/public.pem', 'r') as publicFile:
+        keyData = publicFile.read()
+    publicKey = rsa.PublicKey.load_pkcs1(keyData)
 
     # Connect to the server
     s.connect((socket.gethostname(), 2048))
@@ -30,7 +34,8 @@ def main(args):
     ident = args[1]
     password = args[2]
     text = '\\connect;' + ident + ';' + password
-    msg = formatMessage(text)
+    cipher = rsa.encrypt(text, publicKey)
+    msg = formatMessage(cipher)
     s.send(msg)
 
     while True:

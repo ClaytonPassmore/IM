@@ -1,4 +1,5 @@
 import re
+import rsa
 import socket
 import _mysql
 import thread
@@ -54,6 +55,11 @@ def newUser(request, clientSocket, socketMgr):
     db.close()
 
 def manageIncoming(incomingQueue, socketMgr):
+    # Read private key
+    with open('keys/private.pem', 'r') as privateFile:
+        keyData = privateFile.read()
+    privateKey = rsa.PrivateKey.load_pkcs1(keyData)
+
     # Create database connection
     db = _mysql.connect(host="localhost", user="root", passwd="root", db="IM")
 
@@ -67,7 +73,8 @@ def manageIncoming(incomingQueue, socketMgr):
         msgLength = clientSocket.recv(5)
 
         # Fetch the identifier + password from the client
-        request = fetchMessage(int(msgLength), clientSocket)
+        cipher = fetchMessage(int(msgLength), clientSocket)
+        request = rsa.decrypt(cipher, privateKey)
 
         # Check if this is actually a request for a new user
         if(len(request) > 7 and request[:8] == '\\newuser'):
