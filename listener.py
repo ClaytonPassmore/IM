@@ -25,6 +25,10 @@ def clientListener(socketMgr, jobQueue):
             ident = socketMgr.getLabel(s)
             msgLength = getMessageLengthString(s)
 
+            if(len(msgLength) == 0):
+                disconnect(s, ident, db, socketMgr)
+                continue
+
             # If socket is closed, remove it from the socket manager
             ident = socketMgr.getLabel(s)
             if(len(msgLength) == 0):

@@ -6,9 +6,9 @@ import thread
 import hashlib
 from Queue import Queue
 from socket_manager import socketManager
-from message import fetchMessage, formatMessage
+from message import fetchMessage, formatMessage, getMessageLengthString
 
-def newUser(request, clientSocket, socketMgr):
+def newUser(request, clientSocket, socketMgr, privateKey):
     db = _mysql.connect(host="localhost", user="root", passwd="root", db="IM")
     pieces = request.split(';')
     user = pieces[1]
@@ -46,11 +46,13 @@ def newUser(request, clientSocket, socketMgr):
         print user + " created and added to socket manager"
         # 1 for true / it worked
         response = '\\status;1;\\newuser;' + user
-        clientSocket.send(formatMessage(response))
+        signature = rsa.sign(response, privateKey, 'SHA-1')
+        clientSocket.send(formatMessage(response + ';' + signature))
     else:
         # 0 for false / user name taken
         response = '\\status;0;\\newuser;' + user
-        clientSocket.send(formatMessage(response))
+        signature = rsa.sign(response, privateKey, 'SHA-1')
+        clientSocket.send(formatMessage(response + ';' + signature))
 
     db.close()
 
@@ -70,7 +72,10 @@ def manageIncoming(incomingQueue, socketMgr):
     while True:
         # Block until queue gets an item
         clientSocket = incomingQueue.get()
-        msgLength = clientSocket.recv(5)
+        msgLength = getMessageLengthString(clientSocket)
+        if(len(msgLength) == 0):
+            clientSocket.close()
+            continue
 
         # Fetch the identifier + password from the client
         cipher = fetchMessage(int(msgLength), clientSocket)
@@ -78,13 +83,14 @@ def manageIncoming(incomingQueue, socketMgr):
 
         # Check if this is actually a request for a new user
         if(len(request) > 7 and request[:8] == '\\newuser'):
-            thread.start_new_thread(newUser, (request, clientSocket, socketMgr))
+            thread.start_new_thread(newUser, (request, clientSocket, socketMgr, privateKey))
             continue
         elif(len(request) < 8 or request[:8] != '\\connect'
             or request.isspace() or len(request.split(';')) != 3):
             # If the client is not talking properly, close him.
             text = '\\status;0;' + request
-            clientSocket.send(formatMessage(text))
+            signature = rsa.sign(text, privateKey, 'SHA-1')
+            clientSocket.send(formatMessage(text + ';' + signature))
             clientSocket.close()
             continue
 
@@ -103,7 +109,8 @@ def manageIncoming(incomingQueue, socketMgr):
         result = db.store_result();
         if(len(result.fetch_row()) != 1):
             text = '\\status;0;\\connect;' + user
-            clientSocket.send(formatMessage(text))
+            signature = rsa.sign(text, privateKey, 'SHA-1')
+            clientSocket.send(formatMessage(text + ';' + signature))
             continue
 
         # Add to socket manager and set active
@@ -111,7 +118,8 @@ def manageIncoming(incomingQueue, socketMgr):
             WHERE username = '""" + re.escape(user) + """'"""
         db.query(query)
         text = '\\status;1;\\connect;' + user
-        clientSocket.send(formatMessage(text))
+        signature = rsa.sign(text, privateKey, 'SHA-1')
+        clientSocket.send(formatMessage(text + ';' + signature))
         socketMgr.addSocket(clientSocket, user)
         print user + " added to socket manager"
 
