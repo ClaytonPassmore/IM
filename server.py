@@ -44,7 +44,7 @@ def main():
     while True: 
         # Accept a client connection.
         (clientSocket, address) = serverSocket.accept()
-        print "New client at " + str(address)
+        print('New client at ' + str(address))
 
         # Put new socket in the new connection queue
         incomingQueue.put(clientSocket)

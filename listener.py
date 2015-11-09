@@ -11,7 +11,7 @@ def disconnect(socket, identifier, db, socketMgr):
     query = """UPDATE USERS SET active = FALSE 
     WHERE username = '""" + re.escape(identifier) + """'"""
     db.query(query)
-    print identifier + " has disconnected"
+    print(identifier + ' has disconnected')
 
 # Listen on client ports and execute client requests
 def clientListener(socketMgr, jobQueue):

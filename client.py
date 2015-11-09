@@ -32,7 +32,7 @@ class Application(Frame):
             length = getMessageLengthString(sock)
             if(len(length) == 0):
                 sock.close()
-                print 'Disconnected'
+                print('Disconnected')
                 self.quit()
             result = fetchMessage(int(length), sock)
             if(len(result) > len('\\contacts;') and result[:10] == '\\contacts;'):
@@ -41,7 +41,7 @@ class Application(Frame):
             elif(len(result) > len('\\message;') and result[:9] == '\\message;'):
                 self.msgQueue.put(result[9:])
             else:
-                print result
+                print(result)
 
     def createWidgets(self):
         # Contact list to be displayed after log in
@@ -80,7 +80,7 @@ class Application(Frame):
         # Get our public key
         with open('keys/public.pem', 'r') as publicFile:
             keyData = publicFile.read()
-        self.publicKey = rsa.PublicKey.load_pkcs1(keyData)
+        self.publicKey = rsa.PublicKey.load_pkcs1(keyData, 'PEM')
 
         # Create widgets
         self.createWidgets()
@@ -105,23 +105,23 @@ class Application(Frame):
         length = getMessageLengthString(self.sock)
         if(len(length) == 0):
             self.sock.close()
-            print 'Disconnected'
+            print('Disconnected')
             self.quit()
         result = fetchMessage(int(length), self.sock)
 
         # Verify server
         expected = '\\status;1;\\connect;' + self.user + ';'
         if(result <= len(expected)):
-            print "Unexpected server response ... disconnecting"
+            print('Unexpected server response ... disconnecting')
         signature = result[len(expected):]
         result = result[0:len(expected)-1]
         try:
             rsa.verify(result, signature, self.publicKey)
         except:
-            print "Could not verify server ... disconnecting"
+            print('Could not verify server ... disconnecting')
             self.sock.close()
             self.quit()
-        print "Server verified. Connection established."
+        print('Server verified. Connection established.')
 
         # Create listening thread
         thread.start_new_thread(self.listen, (self.sock,))

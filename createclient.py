@@ -24,7 +24,7 @@ def main():
     msg = formatMessage(cipher)
     s.send(msg)
 
-    print s.recv(2048)
+    print(s.recv(2048))
 
     s.close()
 

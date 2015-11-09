@@ -1,13 +1,11 @@
-from Crypto.PublicKey import RSA
+import rsa
 
 def main():
-    key = RSA.generate(2048)
-    pub = key.publickey().exportKey('PEM')
-    priv = key.exportKey('PEM')
+    (pubkey, privkey) = rsa.newkeys(2048)
     with open('public.pem', 'wb') as fd:
-        fd.write(pub)
+        fd.write(pubkey.save_pkcs1('PEM'))
     with open('private.pem', 'wb') as fd:
-        fd.write(priv)
+        fd.write(privkey.save_pkcs1('PEM'))
     print('Success!')
 
 if __name__ == '__main__':

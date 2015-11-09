@@ -43,7 +43,7 @@ def newUser(request, clientSocket, socketMgr, privateKey):
 
         # Add the client to the socket manager
         socketMgr.addSocket(clientSocket, user)
-        print user + " created and added to socket manager"
+        print(user + ' created and added to socket manager')
         # 1 for true / it worked
         response = '\\status;1;\\newuser;' + user
         signature = rsa.sign(response, privateKey, 'SHA-1')
@@ -60,7 +60,7 @@ def manageIncoming(incomingQueue, socketMgr):
     # Read private key
     with open('keys/private.pem', 'r') as privateFile:
         keyData = privateFile.read()
-    privateKey = rsa.PrivateKey.load_pkcs1(keyData)
+    privateKey = rsa.PrivateKey.load_pkcs1(keyData, 'PEM')
 
     # Create database connection
     db = _mysql.connect(host="localhost", user="root", passwd="root", db="IM")
@@ -121,5 +121,5 @@ def manageIncoming(incomingQueue, socketMgr):
         signature = rsa.sign(text, privateKey, 'SHA-1')
         clientSocket.send(formatMessage(text + ';' + signature))
         socketMgr.addSocket(clientSocket, user)
-        print user + " added to socket manager"
+        print(user + ' added to socket manager')
 
